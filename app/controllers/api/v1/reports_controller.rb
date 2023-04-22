@@ -2,6 +2,7 @@ class Api::V1::ReportsController < ApplicationController
   def create
     report = Report.new(report_params)
     if report.valid?
+      alert_spam!(report) if report.spam?
       render json: { message: 'Report received' }, status: :ok
     else
       render json: { message: 'Invalid report' }, status: :unprocessable_entity
@@ -10,8 +11,11 @@ class Api::V1::ReportsController < ApplicationController
 
   private
 
-  def valid_payload?
-    false
+  def alert_spam!(report)
+    SlackNotifier::CLIENT.chat_postMessage(
+      channel: '#general', 
+      text: "You've got spam from: #{report.email}"
+    )
   end
 
   def report_params

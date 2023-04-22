@@ -30,6 +30,7 @@ RSpec.describe "Api::V1::Reports", type: :request do
       "BouncedAt": "2019-11-05T16:33:54.9070259Z",
     }
   end
+
   describe "POST /reports" do
     context "with invalid request" do
       it "returns 422" do
@@ -42,6 +43,14 @@ RSpec.describe "Api::V1::Reports", type: :request do
       it "returns 200" do
         post api_v1_reports_path, params: spam_report
         expect(response).to have_http_status(200)
+      end
+
+      it "sends a message to the spam channel" do
+        expect(SlackNotifier::CLIENT).to receive(:chat_postMessage).with(
+          channel: '#general',
+          text: "You've got spam from: #{spam_report[:Email]}"
+        )
+        post api_v1_reports_path, params: spam_report
       end
     end
 
