@@ -1,8 +1,7 @@
 class Api::V1::ReportsController < ApplicationController
-  before_action :underscore_params!
-
   def create
-    if valid_payload?
+    report = Report.new(report_params)
+    if report.valid?
       render json: { message: 'Report received' }, status: :ok
     else
       render json: { message: 'Invalid report' }, status: :unprocessable_entity
@@ -15,11 +14,8 @@ class Api::V1::ReportsController < ApplicationController
     false
   end
 
-  def underscore_params!
+  def report_params
     params.deep_transform_keys!(&:underscore)
-  end
-
-  def reports_params
-    params.require(:report).permit(:record_type, :type, :type_code, :name, :tag, :message_stream, :description, :email, :from, :bounced_at)
+          .permit(:record_type, :type, :type_code, :name, :tag, :message_stream, :description, :email, :from, :bounced_at)
   end
 end
